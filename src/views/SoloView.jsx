@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { useStealthCapture } from '../hooks/useStealthCapture'
+import { useGravityRotation } from '../hooks/useGravityRotation'
 import { solveQuestion } from '../services/aiService'
 
 async function requestWakeLock() {
@@ -14,9 +15,11 @@ export default function SoloView({ onBack }) {
   const videoRef = useRef(null)
   const [status, setStatus] = useState('ready')
   const [answer, setAnswer] = useState('')
-  const [isLandscape, setIsLandscape] = useState(false)
   const cooldownRef = useRef(false)
   const { capture } = useStealthCapture(videoRef)
+  const rotation = useGravityRotation()
+  
+  const [isLandscape, setIsLandscape] = useState(false)
 
   useEffect(() => {
     const mq = window.matchMedia('(orientation: landscape)')
@@ -34,8 +37,8 @@ export default function SoloView({ onBack }) {
       .getUserMedia({
         video: {
           facingMode: { ideal: 'environment' },
-          width: { ideal: 1920 },
-          height: { ideal: 1080 },
+          width: { ideal: 4096 },
+          height: { ideal: 2160 }
         },
         audio: false,
       })
@@ -61,14 +64,14 @@ export default function SoloView({ onBack }) {
     setStatus('processing')
 
     try {
-      const base64 = capture()
+      const base64 = await capture()
       if (!base64) throw new Error('Capture failed')
       const result = await solveQuestion(base64)
       setAnswer(result)
       setStatus('ready')
-    } catch {
+    } catch (err) {
       navigator.vibrate?.([100, 50, 100])
-      setAnswer('?')
+      setAnswer(`Lỗi: ${err.message}`)
       setStatus('ready')
     }
 
@@ -80,9 +83,9 @@ export default function SoloView({ onBack }) {
   const dotColor = { ready: '#00FF00', processing: '#FFA500', error: '#FF0000' }[status]
   const dotGlow = { ready: '#00FF0066', processing: '#FFA50066', error: '#FF000066' }[status]
 
-  const getAnswerStyle = (landscape) => {
+  const getAnswerStyle = () => {
     const len = answer.length
-    const scale = landscape ? 0.6 : 1
+    const scale = isLandscape ? 1.5 : 1 // Chữ to hơn nếu ở chế độ landscape
 
     if (status === 'processing') {
       return {
@@ -97,290 +100,233 @@ export default function SoloView({ onBack }) {
 
     if (answer === '?') {
       return {
-        fontSize: `${18 * scale}vh`,
-        fontWeight: 900,
-        color: '#FF4444',
-        fontFamily: "'Inter', sans-serif",
+        fontSize: `${14 * scale}vh`,
+        fontWeight: 500,
+        color: '#555',
+        fontFamily: "'JetBrains Mono', monospace",
         lineHeight: 1,
       }
     }
 
+    // MÀU SÁNG (Bright Cyan / Bright Green) cho đáp án
     if (len === 1) {
       return {
-        fontSize: `${28 * scale}vh`,
+        fontSize: `${22 * scale}vh`,
         fontWeight: 900,
-        color: '#FFD700',
+        color: '#00FFFF',
         fontFamily: "'Inter', sans-serif",
         lineHeight: 1,
       }
     }
     if (len <= 6) {
       return {
-        fontSize: `${14 * scale}vh`,
+        fontSize: `${10 * scale}vh`,
         fontWeight: 800,
-        color: '#FFFFFF',
+        color: '#00FF00',
         fontFamily: "'Inter', sans-serif",
         lineHeight: 1.05,
       }
     }
     if (len <= 15) {
       return {
-        fontSize: `${7 * scale}vh`,
+        fontSize: `${6 * scale}vh`,
         fontWeight: 700,
-        color: '#FFFFFF',
+        color: '#00FF00',
         fontFamily: "'Inter', sans-serif",
         lineHeight: 1.15,
       }
     }
-    if (len <= 35) {
+    if (len <= 60) {
       return {
-        fontSize: `${4.5 * scale}vh`,
-        fontWeight: 700,
-        color: '#FFFFFF',
+        fontSize: `${3.5 * scale}vh`,
+        fontWeight: 600,
+        color: '#00FF00',
         fontFamily: "'Inter', sans-serif",
         lineHeight: 1.25,
       }
     }
     return {
-      fontSize: `${3 * scale}vh`,
-      fontWeight: 600,
-      color: '#FFFFFF',
-      fontFamily: "'Inter', sans-serif",
-      lineHeight: 1.35,
+      fontSize: `${1.8 * scale}vh`,
+      fontWeight: 400,
+      color: '#00FF00',
+      fontFamily: "'JetBrains Mono', monospace",
+      lineHeight: 1.4,
     }
   }
 
-  const renderAnswerContent = (landscape) => {
+  const renderAnswerContent = () => {
+    const appliedRotation = isLandscape ? 0 : -rotation
+    const isSideways = appliedRotation === 90 || appliedRotation === -90
+    const hasText = answer && answer !== '?'
+
+    // Kỹ thuật xoay container và giữ nguyên scroll:
+    // Khi xoay 90 độ, width và height phải hoán đổi cho nhau so với khung chứa mẹ.
+    // Khung chứa mẹ (Cột đen) có kích thước là 100vw x 40vh (khi màn hình dọc).
+    // Nên container chữ phải là 40vh x 100vw.
+    const containerStyle = {
+      transform: `rotate(${appliedRotation}deg)`,
+      transition: 'transform 0.3s ease',
+      display: 'flex',
+      flexDirection: 'column',
+      justifyContent: hasText ? 'flex-start' : 'center',
+      alignItems: hasText ? 'flex-start' : 'center',
+      width: isSideways ? '40vh' : '100%',
+      height: isSideways ? '100vw' : '100%',
+      position: 'absolute',
+      overflowY: 'auto',
+      overflowX: 'hidden',
+      padding: '20px',
+      boxSizing: 'border-box'
+    }
+
     if (status === 'processing') {
-      return <div style={getAnswerStyle(landscape)}>...</div>
+      return (
+        <div style={containerStyle}>
+          <div style={getAnswerStyle()}>...</div>
+        </div>
+      )
     }
     if (answer) {
       return (
-        <div style={{
-          ...getAnswerStyle(landscape),
-          wordBreak: 'break-word',
-          animation: 'fade-in 0.25s ease-out',
-        }}>
-          {answer}
+        <div style={containerStyle}>
+          <div style={{
+            ...getAnswerStyle(),
+            wordBreak: 'break-word',
+            animation: 'fade-in 0.25s ease-out',
+            width: '100%',
+            textAlign: 'left'
+          }}>
+            {answer === '?' ? '[ ? ]' : (
+              <pre style={{ whiteSpace: 'pre-wrap', margin: 0, fontFamily: 'inherit' }}>{answer}</pre>
+            )}
+          </div>
         </div>
       )
     }
     return (
-      <div style={{
-        fontSize: '9px',
-        color: '#444',
-        fontFamily: "'JetBrains Mono', monospace",
-        letterSpacing: '2px',
-      }}>
-        CHẠM ĐỂ CHỤP
-      </div>
-    )
-  }
-
-  const renderViewfinder = () => (
-    <div
-      style={{
-        position: 'absolute',
-        top: '18%',
-        left: '50%',
-        transform: 'translate(-50%, 0)',
-        zIndex: 5,
-        pointerEvents: 'none',
-        width: '55vw',
-        maxWidth: '240px',
-        aspectRatio: '4/3',
-      }}
-    >
-      {[
-        { top: 0, left: 0, borderTop: true, borderLeft: true },
-        { top: 0, right: 0, borderTop: true, borderRight: true },
-        { bottom: 0, left: 0, borderBottom: true, borderLeft: true },
-        { bottom: 0, right: 0, borderBottom: true, borderRight: true },
-      ].map((c, i) => (
-        <div
-          key={i}
-          style={{
-            position: 'absolute',
-            top: c.top !== undefined ? c.top : undefined,
-            bottom: c.bottom !== undefined ? c.bottom : undefined,
-            left: c.left !== undefined ? c.left : undefined,
-            right: c.right !== undefined ? c.right : undefined,
-            width: 20,
-            height: 20,
-            borderTop: c.borderTop ? '1.5px solid rgba(255,255,255,0.2)' : undefined,
-            borderBottom: c.borderBottom ? '1.5px solid rgba(255,255,255,0.2)' : undefined,
-            borderLeft: c.borderLeft ? '1.5px solid rgba(255,255,255,0.2)' : undefined,
-            borderRight: c.borderRight ? '1.5px solid rgba(255,255,255,0.2)' : undefined,
-          }}
-        />
-      ))}
-    </div>
-  )
-
-  const renderStatusDot = () => (
-    <div
-      style={{
-        position: 'absolute',
-        top: '14px',
-        right: '14px',
-        zIndex: 30,
-        width: '9px',
-        height: '9px',
-        borderRadius: '50%',
-        background: dotColor,
-        boxShadow: `0 0 8px 2px ${dotGlow}`,
-        transition: 'background 0.25s, box-shadow 0.25s',
-        animation: status === 'processing' ? 'pulse-dot 0.8s infinite' : 'none',
-      }}
-    />
-  )
-
-  const renderBackButton = () => (
-    <button
-      onClick={onBack}
-      style={{
-        position: 'absolute',
-        top: '8px',
-        left: '8px',
-        zIndex: 30,
-        background: 'rgba(0,0,0,0.6)',
-        border: '1px solid rgba(255,255,255,0.08)',
-        color: 'rgba(255,255,255,0.25)',
-        fontSize: '10px',
-        padding: '5px 9px',
-        fontFamily: "'JetBrains Mono', monospace",
-        cursor: 'pointer',
-        borderRadius: '4px',
-        letterSpacing: '1px',
-      }}
-    >
-      ←
-    </button>
-  )
-
-  if (isLandscape) {
-    return (
-      <div style={{ position: 'fixed', inset: 0, display: 'flex', background: '#000' }}>
-        <div
-          style={{ flex: 7, position: 'relative', overflow: 'hidden' }}
-          onPointerDown={handleCapture}
-        >
-          <video
-            ref={videoRef}
-            playsInline
-            muted
-            autoPlay
-            style={{
-              position: 'absolute',
-              top: 0,
-              left: 0,
-              width: '100%',
-              height: '100%',
-              objectFit: 'cover',
-            }}
-          />
-          {renderBackButton()}
-          {renderStatusDot()}
-          {renderViewfinder()}
-
-          {status === 'processing' && (
-            <div
-              style={{
-                position: 'absolute',
-                inset: 0,
-                zIndex: 8,
-                background: 'linear-gradient(to bottom, transparent 48%, rgba(255,165,0,0.04) 50%, transparent 52%)',
-                pointerEvents: 'none',
-                animation: 'scan 1.2s linear infinite',
-              }}
-            />
-          )}
-        </div>
-
-        <div
-          style={{
-            flex: 3,
-            background: '#0a0a0a',
-            borderLeft: '1px solid #1a1a1a',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            padding: '16px',
-            textAlign: 'center',
-          }}
-        >
-          {renderAnswerContent(true)}
+      <div style={containerStyle}>
+        <div style={{
+          fontSize: '9px',
+          color: '#555',
+          fontFamily: "'JetBrains Mono', monospace",
+          letterSpacing: '2px',
+        }}>
+          CHẠM ĐỂ CHỤP
         </div>
       </div>
     )
   }
 
   return (
-    <div style={{ position: 'fixed', inset: 0, background: '#000', overflow: 'hidden' }}>
-      <video
-        ref={videoRef}
-        playsInline
-        muted
-        autoPlay
-        style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          width: '100vw',
-          height: '100vh',
-          objectFit: 'cover',
-          zIndex: 1,
-        }}
-      />
-
-      {renderBackButton()}
-      {renderStatusDot()}
-      {renderViewfinder()}
-
-      {status === 'processing' && (
-        <div
+    <div style={{ 
+      position: 'fixed', inset: 0, background: '#000', overflow: 'hidden',
+      display: 'flex', flexDirection: isLandscape ? 'row' : 'column'
+    }}>
+      {/* KHU VỰC CAMERA */}
+      <div style={{ flex: 1, position: 'relative', overflow: 'hidden' }}>
+        <video
+          ref={videoRef}
+          playsInline
+          muted
+          autoPlay
           style={{
-            position: 'fixed',
-            inset: 0,
-            zIndex: 8,
-            background: 'linear-gradient(to bottom, transparent 48%, rgba(255,165,0,0.04) 50%, transparent 52%)',
-            pointerEvents: 'none',
-            animation: 'scan 1.2s linear infinite',
+            position: 'absolute',
+            top: 0, left: 0,
+            width: '100%', height: '100%',
+            objectFit: 'cover',
+            zIndex: 1,
           }}
         />
-      )}
 
-      <div
-        onPointerDown={handleCapture}
-        style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          width: '100%',
-          height: 'calc(100% - 22vh)',
-          background: 'transparent',
-          zIndex: 20,
-        }}
-      />
+        {/* Nút Back */}
+        <div style={{
+          position: 'absolute',
+          top: '8px', left: '8px', zIndex: 30,
+          width: '32px', height: '32px',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          background: 'rgba(0,0,0,0.6)',
+          border: '1px solid rgba(255,255,255,0.08)',
+          borderRadius: '4px', cursor: 'pointer',
+        }} onClick={onBack}>
+          <div style={{
+            color: 'rgba(255,255,255,0.25)',
+            fontSize: '10px',
+            fontFamily: "'JetBrains Mono', monospace",
+          }}>
+            ←
+          </div>
+        </div>
 
-      <div
-        style={{
-          position: 'fixed',
-          bottom: 0,
-          left: 0,
-          right: 0,
-          height: '22vh',
-          background: 'rgba(0,0,0,0.88)',
-          borderTop: '1px solid #1a1a1a',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          zIndex: 25,
-          padding: '12px 20px',
-          textAlign: 'center',
-        }}
-      >
-        {renderAnswerContent(false)}
+        {/* Chấm Status */}
+        <div style={{
+          position: 'absolute',
+          top: '14px', right: '14px', zIndex: 30,
+          width: '9px', height: '9px', borderRadius: '50%',
+          background: dotColor,
+          boxShadow: `0 0 8px 2px ${dotGlow}`,
+          transition: 'background 0.25s, box-shadow 0.25s',
+          animation: status === 'processing' ? 'pulse-dot 0.8s infinite' : 'none',
+        }} />
+
+        {/* Viewfinder Bracket */}
+        <div style={{
+          position: 'absolute',
+          top: '18%', left: '50%', transform: 'translate(-50%, 0)', zIndex: 5,
+          pointerEvents: 'none', width: '70%', maxWidth: '300px', aspectRatio: '4/3',
+        }}>
+          {[
+            { top: 0, left: 0, borderTop: true, borderLeft: true },
+            { top: 0, right: 0, borderTop: true, borderRight: true },
+            { bottom: 0, left: 0, borderBottom: true, borderLeft: true },
+            { bottom: 0, right: 0, borderBottom: true, borderRight: true },
+          ].map((c, i) => (
+            <div key={i} style={{
+              position: 'absolute',
+              top: c.top !== undefined ? c.top : undefined,
+              bottom: c.bottom !== undefined ? c.bottom : undefined,
+              left: c.left !== undefined ? c.left : undefined,
+              right: c.right !== undefined ? c.right : undefined,
+              width: 20, height: 20,
+              borderTop: c.borderTop ? '1.5px solid rgba(255,255,255,0.2)' : undefined,
+              borderBottom: c.borderBottom ? '1.5px solid rgba(255,255,255,0.2)' : undefined,
+              borderLeft: c.borderLeft ? '1.5px solid rgba(255,255,255,0.2)' : undefined,
+              borderRight: c.borderRight ? '1.5px solid rgba(255,255,255,0.2)' : undefined,
+            }} />
+          ))}
+        </div>
+
+        {status === 'processing' && (
+          <div style={{
+            position: 'absolute', inset: 0, zIndex: 8,
+            background: 'linear-gradient(to bottom, transparent 48%, rgba(255,165,0,0.04) 50%, transparent 52%)',
+            pointerEvents: 'none', animation: 'scan 1.2s linear infinite',
+          }} />
+        )}
+
+        {/* Lớp Overlay để nhấn chụp */}
+        <div
+          onPointerDown={handleCapture}
+          style={{
+            position: 'absolute', inset: 0, zIndex: 20, background: 'transparent'
+          }}
+        />
+      </div>
+
+      {/* KHU VỰC CỘT ĐEN ĐÁP ÁN */}
+      <div style={{
+        width: isLandscape ? '40%' : '100%',
+        height: isLandscape ? '100%' : '40%',
+        background: '#000',
+        borderLeft: isLandscape ? '1px solid #1a1a1a' : 'none',
+        borderTop: !isLandscape ? '1px solid #1a1a1a' : 'none',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        zIndex: 25,
+        padding: '20px',
+        textAlign: 'center',
+      }}>
+        {renderAnswerContent()}
       </div>
     </div>
   )

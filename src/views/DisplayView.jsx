@@ -1,11 +1,13 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { subscribeToSession } from '../services/databaseService'
+import { useGravityRotation } from '../hooks/useGravityRotation'
 
 export default function DisplayView({ sessionId, onBack }) {
   const [displayState, setDisplayState] = useState('waiting')
   const [answer, setAnswer] = useState('')
   const [visible, setVisible] = useState(true)
   const lastTimestampRef = useRef(0)
+  const rotation = useGravityRotation()
 
   const transitionTo = useCallback((newState, newAnswer = '') => {
     setVisible(false)
@@ -71,12 +73,21 @@ export default function DisplayView({ sessionId, onBack }) {
         fontFamily: "'Inter', sans-serif",
       }
     }
+    if (len <= 100) {
+      return {
+        fontSize: '4.5vh',
+        fontWeight: 600,
+        color: '#FFFFFF',
+        lineHeight: 1.35,
+        fontFamily: "'Inter', sans-serif",
+      }
+    }
     return {
-      fontSize: '4.5vh',
-      fontWeight: 600,
+      fontSize: '2.5vh',
+      fontWeight: 400,
       color: '#FFFFFF',
-      lineHeight: 1.35,
-      fontFamily: "'Inter', sans-serif",
+      lineHeight: 1.4,
+      fontFamily: "'JetBrains Mono', monospace",
     }
   }
 
@@ -93,31 +104,39 @@ export default function DisplayView({ sessionId, onBack }) {
         padding: '5vw',
       }}
     >
-      <button
-        onClick={onBack}
-        style={{
-          position: 'fixed',
-          top: '8px',
-          left: '8px',
-          background: 'transparent',
-          border: '1px solid #111',
+      <div style={{
+        position: 'fixed',
+        top: '8px',
+        left: '8px',
+        zIndex: 30,
+        width: '32px',
+        height: '32px',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        background: 'transparent',
+        border: '1px solid #111',
+        borderRadius: '4px',
+        cursor: 'pointer',
+      }} onClick={onBack}>
+        <div style={{
           color: '#666',
           fontSize: '10px',
-          padding: '5px 9px',
           fontFamily: "'JetBrains Mono', monospace",
-          cursor: 'pointer',
-          borderRadius: '4px',
-        }}
-      >
-        ←
-      </button>
+          transform: `rotate(${-rotation}deg)`,
+          transition: 'transform 0.3s ease-out'
+        }}>
+          ←
+        </div>
+      </div>
 
       <div
         style={{
           position: 'fixed',
           top: '10px',
           left: '50%',
-          transform: 'translateX(-50%)',
+          transform: `translateX(-50%) rotate(${-rotation}deg)`,
+          transition: 'transform 0.3s ease-out',
           fontSize: '10px',
           color: '#555',
           fontFamily: "'JetBrains Mono', monospace",
@@ -129,10 +148,21 @@ export default function DisplayView({ sessionId, onBack }) {
 
       <div
         style={{
-          width: '100%',
+          position: 'absolute',
+          width: (rotation === 90 || rotation === -90) ? '100vh' : '100vw',
+          height: (rotation === 90 || rotation === -90) ? '100vw' : '100vh',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: answer ? 'flex-start' : 'center',
           textAlign: 'center',
           opacity: visible ? 1 : 0,
-          transition: 'opacity 0.3s ease-in-out',
+          transform: `rotate(${-rotation}deg)`,
+          transition: 'opacity 0.3s ease-in-out, transform 0.3s ease-out, width 0s, height 0s',
+          overflowY: 'auto',
+          overflowX: 'hidden',
+          padding: '8vw',
+          boxSizing: 'border-box'
         }}
       >
         {displayState === 'waiting' && (
@@ -171,9 +201,13 @@ export default function DisplayView({ sessionId, onBack }) {
               maxWidth: '92vw',
               margin: '0 auto',
               animation: 'fade-in 0.25s ease-out',
+              textAlign: answer.length > 15 ? 'left' : 'center',
+              width: '100%',
             }}
           >
-            {answer}
+            <pre style={{ whiteSpace: 'pre-wrap', margin: 0, fontFamily: 'inherit' }}>
+              {answer}
+            </pre>
           </div>
         )}
 
@@ -181,20 +215,20 @@ export default function DisplayView({ sessionId, onBack }) {
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2vh' }}>
             <div
               style={{
-                fontSize: '22vh',
-                fontWeight: 900,
-                color: '#FF4444',
+                fontSize: '15vh',
+                fontWeight: 500,
+                color: '#555',
                 lineHeight: 1,
-                fontFamily: "'Inter', sans-serif",
+                fontFamily: "'JetBrains Mono', monospace",
                 animation: 'fade-in 0.2s ease-out',
               }}
             >
-              ?
+              [ ? ]
             </div>
             <div
               style={{
                 fontSize: '1.8vh',
-                color: '#777',
+                color: '#555',
                 fontFamily: "'JetBrains Mono', monospace",
                 letterSpacing: '2px',
               }}
