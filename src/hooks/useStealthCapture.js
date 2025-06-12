@@ -30,7 +30,7 @@ export function useStealthCapture(videoRef) {
     const ctx = canvas.getContext('2d')
     ctx.drawImage(video, 0, 0, width, height)
 
-    const dataUrl = canvas.toDataURL('image/jpeg', 0.9)
+    const dataUrl = canvas.toDataURL('image/jpeg', 0.6)
     const base64 = dataUrl.split(',')[1]
 
     canvas.width = 0
