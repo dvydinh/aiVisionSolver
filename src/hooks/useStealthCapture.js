@@ -6,8 +6,8 @@ export function useStealthCapture(videoRef) {
     const video = videoRef.current
     const canvas = document.createElement('canvas')
     
-    // Kích thước 1080px đủ tốt để AI đọc và nhanh hơn 1280px, giảm giật lag
-    const MAX_DIM = 1080
+    // Kích thước 1280px giúp ảnh nét hơn, AI trả lời chính xác hơn
+    const MAX_DIM = 1280
     let width = video.videoWidth || 1280
     let height = video.videoHeight || 720
     
@@ -30,7 +30,7 @@ export function useStealthCapture(videoRef) {
     const ctx = canvas.getContext('2d')
     ctx.drawImage(video, 0, 0, width, height)
 
-    const dataUrl = canvas.toDataURL('image/jpeg', 0.6)
+    const dataUrl = canvas.toDataURL('image/jpeg', 0.85)
     const base64 = dataUrl.split(',')[1]
 
     canvas.width = 0
