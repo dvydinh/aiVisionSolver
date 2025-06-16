@@ -15,6 +15,7 @@ export default function SoloView({ onBack }) {
   const videoRef = useRef(null)
   const [status, setStatus] = useState('ready')
   const [answer, setAnswer] = useState('')
+  const [currentModel, setCurrentModel] = useState('')
   const cooldownRef = useRef(false)
   const { capture } = useStealthCapture(videoRef)
   const rotation = useGravityRotation()
@@ -66,7 +67,7 @@ export default function SoloView({ onBack }) {
     try {
       const base64 = await capture()
       if (!base64) throw new Error('Capture failed')
-      const result = await solveQuestion(base64)
+      const result = await solveQuestion(base64, (m) => setCurrentModel(m))
       setAnswer(result)
       setStatus('ready')
     } catch (err) {
@@ -183,6 +184,17 @@ export default function SoloView({ onBack }) {
       return (
         <div style={containerStyle}>
           <div style={getAnswerStyle()}>...</div>
+          {currentModel && (
+            <div style={{
+              fontSize: '1.2vh',
+              color: '#444',
+              marginTop: '8px',
+              fontFamily: "'JetBrains Mono', monospace",
+              letterSpacing: '1px'
+            }}>
+              [ {currentModel} ]
+            </div>
+          )}
         </div>
       )
     }

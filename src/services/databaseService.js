@@ -16,10 +16,12 @@ export async function getSession(sessionId) {
   return null
 }
 
-export async function updateStatus(sessionId, status) {
+export async function updateStatus(sessionId, status, model = null) {
+  const updateData = { status }
+  if (model) updateData.model = model
   await setDoc(
     doc(db, 'sessions', sessionId),
-    { status },
+    updateData,
     { merge: true }
   )
 }
