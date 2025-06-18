@@ -7,9 +7,9 @@ const SYSTEM_PROMPT = `Bạn là hệ thống giải bài tự động cực k�
 TUYỆT ĐỐI KHÔNG giải thích, KHÔNG lặp lại đề, KHÔNG có lời dẫn. Nếu ảnh mờ không đọc được thì in '?'`
 
 const MODELS_SMART_TO_DUMB = [
-  'gemini-3.6-flash',
-  'gemini-3.5-flash',
   'gemini-3.5-flash-lite',
+  'gemini-3.5-flash',
+  'gemini-3.6-flash',
   'gemini-3.1-flash-lite',
   'gemini-3-flash',
   'gemini-2.5-flash',
@@ -21,7 +21,7 @@ export async function solveQuestion(base64Image, onModelChange = null) {
   let lastError = null
 
   // Đưa model đã chạy thành công trước đó lên đầu mâm để khỏi mất công test lại
-  let cachedModel = localStorage.getItem('SCANTERM_BEST_MODEL')
+  let cachedModel = localStorage.getItem('SCANTERM_BEST_MODEL_V2')
   let modelsToTry = [...MODELS_SMART_TO_DUMB]
   if (cachedModel) {
     modelsToTry = [cachedModel, ...modelsToTry.filter(m => m !== cachedModel)]
@@ -42,8 +42,8 @@ export async function solveQuestion(base64Image, onModelChange = null) {
             contents: [
               {
                 parts: [
-                  { inlineData: { mimeType: 'image/jpeg', data: base64Image } },
-                  { text: "Solve this strictly following system instructions." }
+                  { text: SYSTEM_PROMPT },
+                  { inlineData: { mimeType: 'image/jpeg', data: base64Image } }
                 ],
               },
             ],
@@ -60,7 +60,7 @@ export async function solveQuestion(base64Image, onModelChange = null) {
         if (resp.status === 429 || resp.status === 404 || resp.status === 503) {
           // Xóa cache nếu model đang dùng bị hết token (429) để lần sau nó thử model khác
           if (resp.status === 429 && model === cachedModel) {
-            localStorage.removeItem('SCANTERM_BEST_MODEL')
+            localStorage.removeItem('SCANTERM_BEST_MODEL_V2')
           }
           continue
         } else {
@@ -76,7 +76,7 @@ export async function solveQuestion(base64Image, onModelChange = null) {
       }
 
       // Đánh dấu model này là ngon lành cành đào để lần sau ưu tiên
-      localStorage.setItem('SCANTERM_BEST_MODEL', model)
+      localStorage.setItem('SCANTERM_BEST_MODEL_V2', model)
 
       return data.candidates[0]?.content?.parts?.[0]?.text?.trim() || '?'
     } catch (error) {
