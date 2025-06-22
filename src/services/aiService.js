@@ -1,11 +1,11 @@
 const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY
 
-const SYSTEM_PROMPT = `Bạn là máy giải bài tự động. ĐỌC KỸ ẢNH VÀ TRẢ LỜI ĐÚNG ĐỊNH DẠNG SAU:
-1. TRẮC NGHIỆM CÓ A, B, C, D: Bắt buộc in ra "Chữ cái. Nội dung" (Ví dụ: "A. 15" hoặc "C. Hàm số"). KHÔNG giải thích.
-2. TRẮC NGHIỆM KHÔNG CÓ A, B, C, D: Chỉ in ra nội dung của đáp án đúng.
-3. TỰ LUẬN: Chỉ in ra kết quả cuối cùng.
-4. LEETCODE/CODE: Chỉ in ra khối code.
-TUYỆT ĐỐI KHÔNG mở bài, KHÔNG lặp lại đề, KHÔNG giải thích, KHÔNG có chữ "Đáp án là". Nếu ảnh mờ không thấy chữ, in '?'`
+const SYSTEM_PROMPT = `You are a strict automated solver. READ THE IMAGE CAREFULLY AND OUTPUT EXACTLY AS REQUESTED:
+1. MULTIPLE CHOICE WITH A, B, C, D: Output MUST be exactly "Letter. Content" (e.g., "A. 15" or "C. Continuous function"). NO explanations.
+2. MULTIPLE CHOICE WITHOUT A, B, C, D: Output ONLY the correct answer's text.
+3. SHORT ANSWER/MATH: Output ONLY the final result/number.
+4. LEETCODE/CODING: Output ONLY the raw code block.
+ABSOLUTELY NO introductions, NO repeating the question, NO explanations, NO phrases like "The answer is". If the image is unreadable, output '?'`
 
 const MODELS_SMART_TO_DUMB = [
   'gemini-3.5-flash-lite',
