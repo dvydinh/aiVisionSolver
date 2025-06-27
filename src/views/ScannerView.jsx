@@ -92,7 +92,10 @@ export default function ScannerView({ sessionId, onBack }) {
   const dotGlow = { ready: '#00FF0066', processing: '#FFA50066', error: '#FF000066' }[status]
 
   return (
-    <div style={{ position: 'fixed', inset: 0, background: '#000', overflow: 'hidden' }}>
+    <div 
+      onClick={handleCapture}
+      style={{ position: 'fixed', inset: 0, background: '#000', overflow: 'hidden' }}
+    >
       <video
         ref={videoRef}
         playsInline
@@ -139,7 +142,10 @@ export default function ScannerView({ sessionId, onBack }) {
         border: '1px solid rgba(255,255,255,0.08)',
         borderRadius: '4px',
         cursor: 'pointer',
-      }} onClick={onBack}>
+      }} onClick={(e) => {
+        e.stopPropagation()
+        onBack()
+      }}>
         <div style={{
           color: 'rgba(255,255,255,0.25)',
           fontSize: '10px',
@@ -222,19 +228,6 @@ export default function ScannerView({ sessionId, onBack }) {
           }}
         />
       )}
-
-      <div
-        onPointerDown={handleCapture}
-        style={{
-          position: 'fixed',
-          bottom: 0,
-          left: 0,
-          width: '100%',
-          height: '40vh',
-          background: 'transparent',
-          zIndex: 20,
-        }}
-      />
 
       <div
         style={{

@@ -230,10 +230,13 @@ export default function SoloView({ onBack }) {
   }
 
   return (
-    <div style={{ 
-      position: 'fixed', inset: 0, background: '#000', overflow: 'hidden',
-      display: 'flex', flexDirection: isLandscape ? 'row' : 'column'
-    }}>
+    <div 
+      onClick={handleCapture}
+      style={{ 
+        position: 'fixed', inset: 0, background: '#000', overflow: 'hidden',
+        display: 'flex', flexDirection: isLandscape ? 'row' : 'column'
+      }}
+    >
       {/* KHU VỰC CAMERA */}
       <div style={{ flex: 1, position: 'relative', overflow: 'hidden' }}>
         <video
@@ -259,7 +262,10 @@ export default function SoloView({ onBack }) {
           background: 'rgba(0,0,0,0.6)',
           border: '1px solid rgba(255,255,255,0.08)',
           borderRadius: '4px', cursor: 'pointer',
-        }} onClick={onBack}>
+        }} onClick={(e) => {
+          e.stopPropagation()
+          onBack()
+        }}>
           <div style={{
             color: 'rgba(255,255,255,0.25)',
             fontSize: '10px',
@@ -315,13 +321,6 @@ export default function SoloView({ onBack }) {
           }} />
         )}
 
-        {/* Lớp Overlay để nhấn chụp */}
-        <div
-          onPointerDown={handleCapture}
-          style={{
-            position: 'absolute', inset: 0, zIndex: 20, background: 'transparent'
-          }}
-        />
       </div>
 
       {/* KHU VỰC CỘT ĐEN ĐÁP ÁN */}
