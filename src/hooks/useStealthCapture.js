@@ -6,10 +6,10 @@ export function useStealthCapture(videoRef) {
     const video = videoRef.current
     const canvas = document.createElement('canvas')
     
-    // Kích thước 1280px giúp ảnh nét hơn, AI trả lời chính xác hơn
-    const MAX_DIM = 1280
-    let width = video.videoWidth || 1280
-    let height = video.videoHeight || 720
+    // Kích thước 1920px (Full HD) giúp chống mờ khi chụp code chữ nhỏ li ti trên màn hình máy tính
+    const MAX_DIM = 1920
+    let width = video.videoWidth || 1920
+    let height = video.videoHeight || 1080
     
     if (width > MAX_DIM || height > MAX_DIM) {
       if (width > height) {
@@ -30,7 +30,7 @@ export function useStealthCapture(videoRef) {
     const ctx = canvas.getContext('2d')
     ctx.drawImage(video, 0, 0, width, height)
 
-    const dataUrl = canvas.toDataURL('image/jpeg', 0.85)
+    const dataUrl = canvas.toDataURL('image/jpeg', 0.92)
     const base64 = dataUrl.split(',')[1]
 
     canvas.width = 0
