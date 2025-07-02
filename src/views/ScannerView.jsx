@@ -94,7 +94,7 @@ export default function ScannerView({ sessionId, onBack }) {
 
   return (
     <div 
-      onClick={handleCapture}
+      onPointerDown={handleCapture}
       style={{ position: 'fixed', inset: 0, background: '#000', overflow: 'hidden' }}
     >
       <video
@@ -143,7 +143,7 @@ export default function ScannerView({ sessionId, onBack }) {
         border: '1px solid rgba(255,255,255,0.08)',
         borderRadius: '4px',
         cursor: 'pointer',
-      }} onClick={(e) => {
+      }} onPointerDown={(e) => {
         e.stopPropagation()
         onBack()
       }}>

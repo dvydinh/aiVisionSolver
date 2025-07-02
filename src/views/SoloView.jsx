@@ -235,7 +235,8 @@ export default function SoloView({ onBack }) {
       onClick={handleCapture}
       style={{ 
         position: 'fixed', inset: 0, background: '#000', overflow: 'hidden',
-        display: 'flex', flexDirection: isLandscape ? 'row' : 'column'
+        display: 'flex', flexDirection: isLandscape ? 'row' : 'column',
+        cursor: 'pointer'
       }}
     >
       {/* KHU VỰC CAMERA */}
