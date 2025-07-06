@@ -166,7 +166,7 @@ export default function SoloView({ onBack }) {
     // Khung chứa mẹ (Cột đen) có kích thước là 100vw x 40vh (khi màn hình dọc).
     // Nên container chữ phải là 40vh x 100vw.
     const containerStyle = {
-      transform: `rotate(${appliedRotation}deg)`,
+      transform: `translate(-50%, -50%) rotate(${appliedRotation}deg)`,
       transition: 'transform 0.3s ease',
       display: 'flex',
       flexDirection: 'column',
@@ -175,6 +175,8 @@ export default function SoloView({ onBack }) {
       width: isSideways ? '40vh' : '100%',
       height: isSideways ? '100vw' : '100%',
       position: 'absolute',
+      top: '50%',
+      left: '50%',
       overflowY: 'auto',
       overflowX: 'hidden',
       padding: '20px',
@@ -327,6 +329,8 @@ export default function SoloView({ onBack }) {
 
       {/* KHU VỰC CỘT ĐEN ĐÁP ÁN */}
       <div style={{
+        position: 'relative',
+        overflow: 'hidden',
         width: isLandscape ? '40%' : '100%',
         height: isLandscape ? '100%' : '40%',
         background: '#000',
