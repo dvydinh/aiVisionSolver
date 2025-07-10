@@ -20,7 +20,7 @@ export default function SoloView({ onBack }) {
   const cooldownRef = useRef(false)
   const { capture } = useStealthCapture(videoRef)
   const rotation = useGravityRotation()
-  const scrollRef = useCustomScroll(Math.abs(rotation) === 90, rotation)
+  const scrollRef = useCustomScroll(rotation !== 0, rotation)
   
   const [isLandscape, setIsLandscape] = useState(false)
 
