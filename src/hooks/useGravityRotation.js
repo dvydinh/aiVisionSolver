@@ -21,7 +21,15 @@ export function useGravityRotation() {
       const accel = event.accelerationIncludingGravity
       if (!accel || accel.x === null || accel.y === null) return
 
-      const { x, y } = accel
+      let { x, y } = accel
+
+      // iOS Safari đảo ngược dấu của cảm biến gia tốc so với chuẩn W3C (Android)
+      // Ta cần chuẩn hóa dữ liệu của iOS về giống Android (W3C)
+      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)
+      if (isIOS) {
+        x = -x
+        y = -y
+      }
 
       // Bỏ qua nếu điện thoại úp hoặc ngửa hoàn toàn (z = 9.8) để tránh nhiễu
       // Nhưng nếu hơi nghiêng một chút thì vẫn lấy x, y để tính toán
@@ -29,12 +37,12 @@ export function useGravityRotation() {
 
       if (Math.abs(x) > Math.abs(y)) {
         // Trọng lực kéo theo trục X -> Điện thoại đang nằm ngang
-        if (x > 0) setRotation(-90) // Quay trái
+        if (x > 0) setRotation(-90) // Quay trái (W3C chuẩn: x > 0)
         else setRotation(90) // Quay phải
       } else {
         // Trọng lực kéo theo trục Y -> Điện thoại đang nằm dọc
-        if (y > 0) setRotation(180) // Ngược
-        else setRotation(0) // Thẳng
+        if (y < 0) setRotation(180) // Ngược (W3C chuẩn: y < 0)
+        else setRotation(0) // Thẳng (W3C chuẩn: y > 0)
       }
     }
 
