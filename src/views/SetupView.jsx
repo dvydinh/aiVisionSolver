@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { createSession, getSession } from '../services/databaseService'
+import { requestOrientationPermission } from '../hooks/useGravityRotation'
 
 function generateCode() {
   const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'
@@ -19,6 +20,7 @@ export default function SetupView({ onStart }) {
   const [loading, setLoading] = useState(false)
 
   const handleSelectRole = async (role) => {
+    await requestOrientationPermission()
     setSelectedRole(role)
     const code = generateCode()
     setGeneratedCode(code)
@@ -29,6 +31,7 @@ export default function SetupView({ onStart }) {
   }
 
   const handleJoin = async () => {
+    await requestOrientationPermission()
     if (joinCode.length < 3) return
     setLoading(true)
     setError('')
@@ -92,7 +95,7 @@ export default function SetupView({ onStart }) {
       <div style={container}>
         {header}
 
-        <button onClick={() => onStart('solo', null, null)} style={buttonStyle(true)}>
+        <button onClick={async () => { await requestOrientationPermission(); onStart('solo', null, null); }} style={buttonStyle(true)}>
           1 THIẾT BỊ
         </button>
         <div style={{ fontSize: '8px', color: '#555', letterSpacing: '1px', marginTop: '6px', marginBottom: '24px' }}>
