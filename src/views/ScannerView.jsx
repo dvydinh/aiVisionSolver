@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { useStealthCapture } from '../hooks/useStealthCapture'
 import { solveQuestion } from '../services/aiService'
 import { updateStatus, pushAnswer } from '../services/databaseService'
+import { useGravityRotation } from '../hooks/useGravityRotation'
 
 async function requestWakeLock() {
   try {
@@ -16,6 +17,7 @@ export default function ScannerView({ sessionId, onBack }) {
   const [status, setStatus] = useState('ready')
   const cooldownRef = useRef(false)
   const { capture } = useStealthCapture(videoRef)
+  const rotation = useGravityRotation()
 
   useEffect(() => {
     requestWakeLock()
@@ -25,8 +27,8 @@ export default function ScannerView({ sessionId, onBack }) {
       .getUserMedia({
         video: {
           facingMode: { ideal: 'environment' },
-          width: { ideal: 1920 },
-          height: { ideal: 1080 },
+          width: { ideal: 4096 },
+          height: { ideal: 2160 }
         },
         audio: false,
       })
@@ -54,7 +56,7 @@ export default function ScannerView({ sessionId, onBack }) {
     try {
       await updateStatus(sessionId, 'processing')
 
-      const base64 = capture()
+      const base64 = await capture()
       if (!base64) throw new Error('Capture failed')
 
       const answer = await solveQuestion(base64)
@@ -65,13 +67,13 @@ export default function ScannerView({ sessionId, onBack }) {
       })
 
       setStatus('ready')
-    } catch {
+    } catch (err) {
       navigator.vibrate?.([100, 50, 100])
       setStatus('error')
 
       try {
         await pushAnswer(sessionId, {
-          result: 'Lỗi mạng, chụp lại',
+          result: `Lỗi: ${err.message}`,
           timestamp: Date.now(),
         })
       } catch {}
@@ -121,33 +123,39 @@ export default function ScannerView({ sessionId, onBack }) {
         }}
       />
 
-      <button
-        onClick={onBack}
-        style={{
-          position: 'fixed',
-          top: '8px',
-          left: '8px',
-          zIndex: 30,
-          background: 'rgba(0,0,0,0.6)',
-          border: '1px solid rgba(255,255,255,0.08)',
+      <div style={{
+        position: 'fixed',
+        top: '8px',
+        left: '8px',
+        zIndex: 30,
+        width: '32px',
+        height: '32px',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        background: 'rgba(0,0,0,0.6)',
+        border: '1px solid rgba(255,255,255,0.08)',
+        borderRadius: '4px',
+        cursor: 'pointer',
+      }} onClick={onBack}>
+        <div style={{
           color: 'rgba(255,255,255,0.25)',
           fontSize: '10px',
-          padding: '5px 9px',
           fontFamily: "'JetBrains Mono', monospace",
-          cursor: 'pointer',
-          borderRadius: '4px',
-          letterSpacing: '1px',
-        }}
-      >
-        ←
-      </button>
+          transform: `rotate(${rotation}deg)`,
+          transition: 'transform 0.3s ease-out'
+        }}>
+          ←
+        </div>
+      </div>
 
       <div
         style={{
           position: 'fixed',
           top: '10px',
           left: '50%',
-          transform: 'translateX(-50%)',
+          transform: `translateX(-50%) rotate(${rotation}deg)`,
+          transition: 'transform 0.3s ease-out',
           zIndex: 30,
           fontSize: '10px',
           color: '#555',
@@ -169,8 +177,8 @@ export default function ScannerView({ sessionId, onBack }) {
           transform: 'translate(-50%, 0)',
           zIndex: 5,
           pointerEvents: 'none',
-          width: '60vw',
-          maxWidth: '280px',
+          width: '70%',
+          maxWidth: '300px',
           aspectRatio: '4/3',
         }}
       >
@@ -257,6 +265,8 @@ export default function ScannerView({ sessionId, onBack }) {
             color: 'rgba(255,255,255,0.5)',
             letterSpacing: '3px',
             fontFamily: "'JetBrains Mono', monospace",
+            transform: `rotate(${rotation}deg)`,
+            transition: 'transform 0.3s ease-out'
           }}
         >
           CHẠM ĐỂ CHỤP
