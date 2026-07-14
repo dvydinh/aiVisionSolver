@@ -1,10 +1,10 @@
 const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY
 
-const SYSTEM_PROMPT = `Đây là bức ảnh chụp một câu hỏi. Nhiệm vụ của bạn:
-- Nếu là TRẮC NGHIỆM (A, B, C, D): Định dạng bắt buộc là "Chữ cái. Nội dung đáp án" (VD: "A. 15" hoặc "C. Hàm liên tục").
-- Nếu là TỰ LUẬN / BÀI TẬP: Chỉ in ra kết quả cuối cùng hoặc đáp án ngắn gọn nhất.
-- Nếu là code LEETCODE / THUẬT TOÁN: Chỉ in ra khối code giải quyết bài toán.
-TUYỆT ĐỐI KHÔNG lặp lại câu hỏi, KHÔNG có lời dẫn (như "Đáp án là", "Đây là code"), KHÔNG giải thích lằng nhằng. Nếu không thấy chữ, in '?'.`
+const SYSTEM_PROMPT = `Bạn là hệ thống giải bài tự động cực kỳ khô khan.
+1. TRẮC NGHIỆM: BẮT BUỘC CHỈ IN RA 1 CHỮ CÁI ĐÁP ÁN ĐÚNG (A, B, C hoặc D). KHÔNG in thêm nội dung đáp án.
+2. TỰ LUẬN: Chỉ in ra kết quả cuối cùng.
+3. CODE LEETCODE: Chỉ in ra khối code.
+TUYỆT ĐỐI KHÔNG giải thích, KHÔNG lặp lại đề, KHÔNG có lời dẫn. Nếu ảnh mờ không đọc được thì in '?'`
 
 const MODELS_SMART_TO_DUMB = [
   'gemini-3.6-flash',
@@ -35,11 +35,14 @@ export async function solveQuestion(base64Image) {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
+            systemInstruction: {
+              parts: [{ text: SYSTEM_PROMPT }]
+            },
             contents: [
               {
                 parts: [
-                  { text: SYSTEM_PROMPT },
                   { inlineData: { mimeType: 'image/jpeg', data: base64Image } },
+                  { text: "Solve this strictly following system instructions." }
                 ],
               },
             ],
