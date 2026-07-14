@@ -5,6 +5,7 @@ import { useGravityRotation } from '../hooks/useGravityRotation'
 export default function DisplayView({ sessionId, onBack }) {
   const [displayState, setDisplayState] = useState('waiting')
   const [answer, setAnswer] = useState('')
+  const [currentModel, setCurrentModel] = useState('')
   const [visible, setVisible] = useState(true)
   const lastTimestampRef = useRef(0)
   const rotation = useGravityRotation()
@@ -24,6 +25,7 @@ export default function DisplayView({ sessionId, onBack }) {
       lastTimestampRef.current = data.timestamp || 0
 
       if (data.status === 'processing') {
+        setCurrentModel(data.model || '')
         transitionTo('processing')
       } else if (data.result === '?') {
         transitionTo('error', '?')
@@ -180,16 +182,28 @@ export default function DisplayView({ sessionId, onBack }) {
         )}
 
         {displayState === 'processing' && (
-          <div
-            style={{
-              fontFamily: "'JetBrains Mono', monospace",
-              fontSize: '4vh',
-              color: '#777',
-              letterSpacing: '3px',
-              animation: 'blink 0.9s ease-in-out infinite',
-            }}
-          >
-            Đang nạp...
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px' }}>
+            <div
+              style={{
+                fontFamily: "'JetBrains Mono', monospace",
+                fontSize: '4vh',
+                color: '#777',
+                letterSpacing: '3px',
+                animation: 'blink 0.9s ease-in-out infinite',
+              }}
+            >
+              Đang nạp...
+            </div>
+            {currentModel && (
+              <div style={{
+                fontSize: '1.5vh',
+                color: '#444',
+                fontFamily: "'JetBrains Mono', monospace",
+                letterSpacing: '1px'
+              }}>
+                [ {currentModel} ]
+              </div>
+            )}
           </div>
         )}
 

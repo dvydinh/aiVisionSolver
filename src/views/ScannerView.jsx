@@ -59,7 +59,9 @@ export default function ScannerView({ sessionId, onBack }) {
       const base64 = await capture()
       if (!base64) throw new Error('Capture failed')
 
-      const answer = await solveQuestion(base64)
+      const answer = await solveQuestion(base64, (model) => {
+        updateStatus(sessionId, 'processing', model)
+      })
 
       await pushAnswer(sessionId, {
         result: answer,

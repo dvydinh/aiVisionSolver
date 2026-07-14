@@ -16,7 +16,7 @@ const MODELS_SMART_TO_DUMB = [
   'gemini-2.5-flash-lite'
 ]
 
-export async function solveQuestion(base64Image) {
+export async function solveQuestion(base64Image, onModelChange = null) {
   const apiKey = (GEMINI_API_KEY || '').trim()
   let lastError = null
 
@@ -28,6 +28,7 @@ export async function solveQuestion(base64Image) {
   }
 
   for (const model of modelsToTry) {
+    if (onModelChange) onModelChange(model)
     try {
       const resp = await fetch(
         `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`,
