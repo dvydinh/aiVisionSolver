@@ -20,7 +20,14 @@ export async function solveQuestion(base64Image) {
   const apiKey = (GEMINI_API_KEY || '').trim()
   let lastError = null
 
-  for (const model of MODELS_SMART_TO_DUMB) {
+  // Đưa model đã chạy thành công trước đó lên đầu mâm để khỏi mất công test lại
+  let cachedModel = localStorage.getItem('SCANTERM_BEST_MODEL')
+  let modelsToTry = [...MODELS_SMART_TO_DUMB]
+  if (cachedModel) {
+    modelsToTry = [cachedModel, ...modelsToTry.filter(m => m !== cachedModel)]
+  }
+
+  for (const model of modelsToTry) {
     try {
       const resp = await fetch(
         `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`,
@@ -47,6 +54,10 @@ export async function solveQuestion(base64Image) {
         lastError = `API ${resp.status} (${model}): ${errText.substring(0, 20)}`
         // Nếu lỗi do hết token (429), model không tồn tại (404) hoặc bảo trì (503), thì thử model tiếp theo
         if (resp.status === 429 || resp.status === 404 || resp.status === 503) {
+          // Xóa cache nếu model đang dùng bị hết token (429) để lần sau nó thử model khác
+          if (resp.status === 429 && model === cachedModel) {
+            localStorage.removeItem('SCANTERM_BEST_MODEL')
+          }
           continue
         } else {
           // Lỗi sai key (403) hoặc ảnh hỏng (400) thì dừng luôn
@@ -59,6 +70,10 @@ export async function solveQuestion(base64Image) {
         if (data.promptFeedback?.blockReason) return 'Bị chặn (Safety)'
         return 'No Response'
       }
+
+      // Đánh dấu model này là ngon lành cành đào để lần sau ưu tiên
+      localStorage.setItem('SCANTERM_BEST_MODEL', model)
+
       return data.candidates[0]?.content?.parts?.[0]?.text?.trim() || '?'
     } catch (error) {
       lastError = `Lỗi (${model}): ${error.message.substring(0, 20)}`
