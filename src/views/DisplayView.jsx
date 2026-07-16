@@ -151,6 +151,8 @@ export default function DisplayView({ sessionId, onBack }) {
       <div
         style={{
           position: 'absolute',
+          top: '50%',
+          left: '50%',
           width: (rotation === 90 || rotation === -90) ? '100vh' : '100vw',
           height: (rotation === 90 || rotation === -90) ? '100vw' : '100vh',
           display: 'flex',
@@ -159,7 +161,7 @@ export default function DisplayView({ sessionId, onBack }) {
           justifyContent: answer ? 'flex-start' : 'center',
           textAlign: 'center',
           opacity: visible ? 1 : 0,
-          transform: `rotate(${-rotation}deg)`,
+          transform: `translate(-50%, -50%) rotate(${-rotation}deg)`,
           transition: 'opacity 0.3s ease-in-out, transform 0.3s ease-out, width 0s, height 0s',
           overflowY: 'auto',
           overflowX: 'hidden',
