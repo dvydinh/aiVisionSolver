@@ -21,7 +21,14 @@ export function useGravityRotation() {
       const accel = event.accelerationIncludingGravity
       if (!accel || accel.x === null || accel.y === null) return
 
-      const { x, y } = accel
+      let { x, y } = accel
+      
+      // Android đảo ngược dấu so với iOS
+      const isAndroid = /android/i.test(navigator.userAgent || navigator.vendor || window.opera)
+      if (isAndroid) {
+        x = -x
+        y = -y
+      }
 
       // Bỏ qua nếu điện thoại úp hoặc ngửa hoàn toàn (z = 9.8) để tránh nhiễu
       // Nhưng nếu hơi nghiêng một chút thì vẫn lấy x, y để tính toán

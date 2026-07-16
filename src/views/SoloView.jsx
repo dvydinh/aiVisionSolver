@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { useStealthCapture } from '../hooks/useStealthCapture'
 import { useGravityRotation } from '../hooks/useGravityRotation'
+import { useCustomScroll } from '../hooks/useCustomScroll'
 import { solveQuestion } from '../services/aiService'
 
 async function requestWakeLock() {
@@ -19,6 +20,7 @@ export default function SoloView({ onBack }) {
   const cooldownRef = useRef(false)
   const { capture } = useStealthCapture(videoRef)
   const rotation = useGravityRotation()
+  const scrollRef = useCustomScroll(Math.abs(rotation) === 90, rotation)
   
   const [isLandscape, setIsLandscape] = useState(false)
 
@@ -185,7 +187,7 @@ export default function SoloView({ onBack }) {
 
     if (status === 'processing') {
       return (
-        <div style={containerStyle}>
+        <div ref={scrollRef} style={containerStyle}>
           <div style={getAnswerStyle()}>...</div>
           {currentModel && (
             <div style={{
@@ -203,7 +205,7 @@ export default function SoloView({ onBack }) {
     }
     if (answer) {
       return (
-        <div style={containerStyle}>
+        <div ref={scrollRef} style={containerStyle}>
           <div style={{
             ...getAnswerStyle(),
             wordBreak: 'break-word',
@@ -219,7 +221,7 @@ export default function SoloView({ onBack }) {
       )
     }
     return (
-      <div style={containerStyle}>
+      <div ref={scrollRef} style={containerStyle}>
         <div style={{
           fontSize: '9px',
           color: '#555',

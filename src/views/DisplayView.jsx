@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { subscribeToSession } from '../services/databaseService'
 import { useGravityRotation } from '../hooks/useGravityRotation'
+import { useCustomScroll } from '../hooks/useCustomScroll'
 
 export default function DisplayView({ sessionId, onBack }) {
   const [displayState, setDisplayState] = useState('waiting')
@@ -9,6 +10,7 @@ export default function DisplayView({ sessionId, onBack }) {
   const [visible, setVisible] = useState(true)
   const lastTimestampRef = useRef(0)
   const rotation = useGravityRotation()
+  const scrollRef = useCustomScroll(Math.abs(rotation) === 90, rotation)
 
   const transitionTo = useCallback((newState, newAnswer = '') => {
     setVisible(false)
@@ -149,6 +151,7 @@ export default function DisplayView({ sessionId, onBack }) {
       </div>
 
       <div
+        ref={scrollRef}
         style={{
           position: 'absolute',
           top: '50%',
