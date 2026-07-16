@@ -219,7 +219,7 @@ export default function DisplayView({ sessionId, onBack }) {
               width: '100%',
             }}
           >
-            <pre style={{ whiteSpace: 'pre-wrap', margin: 0, fontFamily: 'inherit' }}>
+            <pre style={{ whiteSpace: 'pre-wrap', margin: 0, fontFamily: 'inherit', tabSize: 4, MozTabSize: 4 }}>
               {answer}
             </pre>
           </div>

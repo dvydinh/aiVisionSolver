@@ -28,7 +28,8 @@ export default function ScannerView({ sessionId, onBack }) {
         video: {
           facingMode: { ideal: 'environment' },
           width: { ideal: 4096 },
-          height: { ideal: 2160 }
+          height: { ideal: 2160 },
+          advanced: [{ focusMode: 'continuous' }]
         },
         audio: false,
       })

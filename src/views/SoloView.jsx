@@ -39,7 +39,8 @@ export default function SoloView({ onBack }) {
         video: {
           facingMode: { ideal: 'environment' },
           width: { ideal: 4096 },
-          height: { ideal: 2160 }
+          height: { ideal: 2160 },
+          advanced: [{ focusMode: 'continuous' }]
         },
         audio: false,
       })
@@ -209,7 +210,7 @@ export default function SoloView({ onBack }) {
             textAlign: 'left'
           }}>
             {answer === '?' ? '[ ? ]' : (
-              <pre style={{ whiteSpace: 'pre-wrap', margin: 0, fontFamily: 'inherit' }}>{answer}</pre>
+              <pre style={{ whiteSpace: 'pre-wrap', margin: 0, fontFamily: 'inherit', tabSize: 4, MozTabSize: 4 }}>{answer}</pre>
             )}
           </div>
         </div>
