@@ -10,7 +10,7 @@ export default function DisplayView({ sessionId, onBack }) {
   const [visible, setVisible] = useState(true)
   const lastTimestampRef = useRef(0)
   const rotation = useGravityRotation()
-  const scrollRef = useCustomScroll(Math.abs(rotation) === 90, rotation)
+  const scrollRef = useCustomScroll(rotation !== 0, rotation)
 
   const transitionTo = useCallback((newState, newAnswer = '') => {
     setVisible(false)

@@ -27,14 +27,17 @@ export function useCustomScroll(isRotated, rotationDegree) {
       }
       
       const deltaX = e.touches[0].clientX - startX
+      const deltaY = e.touches[0].clientY - startY
       
-      // When rotated 90 degrees (clockwise), physical X maps to container's Y axis
       if (rotationDegree === 90) {
         // Physical swipe right (deltaX > 0) -> scroll UP (decrease scrollTop)
         el.scrollTop = scrollTopStart - deltaX
       } else if (rotationDegree === -90) {
         // Physical swipe right (deltaX > 0) -> scroll DOWN (increase scrollTop)
         el.scrollTop = scrollTopStart + deltaX
+      } else if (Math.abs(rotationDegree) === 180) {
+        // Upside down: physical swipe UP (deltaY < 0) -> scroll UP visually (decrease scrollTop)
+        el.scrollTop = scrollTopStart + deltaY
       }
     }
 
